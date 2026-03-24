@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: pdf_signing_db
+    environment:
+      POSTGRES_USER: pdfsign
+      POSTGRES_PASSWORD: pdfsign123
+      POSTGRES_DB: pdfsigning
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - pdfsign_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pdfsign -d pdfsigning"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pdf_signing_backend
+    environment:
+      - DATABASE_URL=postgresql://pdfsign:pdfsign123@db:5432/pdfsigning
+      - SECRET_KEY=pdf-signing-secret-key-change-in-production
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - ./uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pdfsign_network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pdf_signing_frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - pdfsign_network
+
+volumes:
+  postgres_data:
+
+networks:
+  pdfsign_network:
+    driver: bridge
