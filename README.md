@@ -111,6 +111,42 @@ pdf-signing-app/
 - CORS configuration
 - Role-based access control
 
+## 🔧 Cấu hình môi trường
+
+Tạo file `.env` nếu cần:
+
+```env
+# Database
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=pdfsigning
+
+# JWT
+SECRET_KEY=your-secret-key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+# Backend
+BACKEND_HOST=0.0.0.0
+BACKEND_PORT=8000
+
+# Frontend
+REACT_APP_API_URL=http://localhost:8000
+```
+
+## 🚧 Khắc phục lỗi
+
+### Container không khởi động được
+```bash
+docker compose logs -f
+```
+
+### Xóa và chạy lại từ đầu
+```bash
+docker compose down -v
+docker compose up -d
+```
+
 ## 📄 License
 
 MIT
